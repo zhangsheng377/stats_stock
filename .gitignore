@@ -6,3 +6,8 @@ plot.png
 token
 update_ip_url
 venv/
+AppID
+AppSecret
+phddns_3.0.4_systemd.deb
+stats.ipynb
+statsmodels/
