@@ -79,7 +79,7 @@ def get():
                 if not stock_day_map.get(ts_code):
                     stock_day_map.update({ts_code: {}})
                 if not stock_day_map[ts_code].get(datetime.date.today()):
-                    stock_day_map[ts_code][datetime.date.today()] = ""
+                    stock_day_map[ts_code][datetime.date.today()] = None
                     try:
                         is_stats = stats_stock.query(ts_code=ts_code)
                         if is_stats:
