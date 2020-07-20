@@ -72,8 +72,11 @@ def get():
         msg_type = xml_dict.get("MsgType")
         if msg_type == "text":  # 表示发送的是文本消息
             content = xml_dict.get("Content")
-            matchObj = re.fullmatch(r'\d{6}.\w{2}', content)
-            if matchObj:
+            if content == "清除缓存":
+                global stock_day_map
+                stock_day_map = {}
+                re_content = "缓存已清除"
+            elif re.fullmatch(r'\d{6}.\w{2}', content):
                 resp_dict = handle_stats_stock(xml_dict)
             else:
                 re_content = "请输入 002581.SZ 这样格式的股票代码"
