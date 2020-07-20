@@ -62,6 +62,7 @@ def get():
         xml_str = request.data
         if not xml_str:
             return ""
+        resp_dict = None
         re_content = "信息错误"
         # 对xml字符串进行解析
         xml_dict = xmltodict.parse(xml_str)
@@ -73,79 +74,75 @@ def get():
             content = xml_dict.get("Content")
             matchObj = re.fullmatch(r'\d{6}.\w{2}', content)
             if matchObj:
-                time_start = time.time()
-                ts_code = content
-                media_id = None
-                if not stock_day_map.get(ts_code):
-                    stock_day_map.update({ts_code: {}})
-                if not stock_day_map[ts_code].get(datetime.date.today()):
-                    stock_day_map[ts_code][datetime.date.today()] = None
-                    try:
-                        is_stats = stats_stock.query(ts_code=ts_code)
-                        if is_stats:
-                            returned_value = os.popen(
-                                "curl -s -F media=@plot.png \"https://api.weixin.qq.com/cgi-bin/media/upload?access_token={}&type=image\"".format(
-                                    access_token)).read()
-                            returned_value = eval(returned_value)
-                            media_id_ = returned_value['media_id']
-                            if media_id_:
-                                media_id = media_id_
-                                stock_day_map[ts_code][datetime.date.today()] = media_id
-                    except:
-                        pass
-                else:
-                    media_id = stock_day_map[ts_code][datetime.date.today()]
-                if media_id:
-                    # 构造返回值，经由微信服务器回复给用户的消息内容
-                    resp_dict = {
-                        "xml": {
-                            "ToUserName": xml_dict.get("FromUserName"),
-                            "FromUserName": xml_dict.get("ToUserName"),
-                            "CreateTime": int(time.time()),
-                            "MsgType": "image",
-                            "Image": {
-                                "MediaId": media_id,
-                            }
-                        }
-                    }
-                    # 将字典转换为xml字符串
-                    resp_xml_str = xmltodict.unparse(resp_dict)
-                    # 返回消息数据给微信服务器
-                    return resp_xml_str
-                re_content = "is stock code" + "\n" + "time cost:" + str(time.time() - time_start) + "s"
+                resp_dict = handle_stats_stock(xml_dict)
             else:
                 re_content = "请输入 002581.SZ 这样格式的股票代码"
-                # 构造返回值，经由微信服务器回复给用户的消息内容
-                resp_dict = {
-                    "xml": {
-                        "ToUserName": xml_dict.get("FromUserName"),
-                        "FromUserName": xml_dict.get("ToUserName"),
-                        "CreateTime": int(time.time()),
-                        "MsgType": "text",
-                        "Content": re_content,
-                    }
+
+        if not resp_dict:
+            # 构造返回值，经由微信服务器回复给用户的消息内容
+            resp_dict = {
+                "xml": {
+                    "ToUserName": xml_dict.get("FromUserName"),
+                    "FromUserName": xml_dict.get("ToUserName"),
+                    "CreateTime": int(time.time()),
+                    "MsgType": "text",
+                    "Content": re_content,
                 }
+            }
 
-                # 将字典转换为xml字符串
-                resp_xml_str = xmltodict.unparse(resp_dict)
-                # 返回消息数据给微信服务器
-                return resp_xml_str
+        # 将字典转换为xml字符串
+        resp_xml_str = xmltodict.unparse(resp_dict)
+        # 返回消息数据给微信服务器
+        return resp_xml_str
 
+
+def handle_stats_stock(xml_dict):
+    ts_code = xml_dict.get("Content")
+    media_id = None
+    if not stock_day_map.get(ts_code):
+        stock_day_map.update({ts_code: {}})
+    if not stock_day_map[ts_code].get(datetime.date.today()):
+        stock_day_map[ts_code][datetime.date.today()] = None
+        try:
+            is_stats = stats_stock.query(ts_code=ts_code)
+            if is_stats:
+                returned_value = os.popen(
+                    "curl -s -F media=@plot.png \"https://api.weixin.qq.com/cgi-bin/media/upload?access_token={}&type=image\"".format(
+                        access_token)).read()
+                returned_value = eval(returned_value)
+                media_id_ = returned_value['media_id']
+                if media_id_:
+                    media_id = media_id_
+                    stock_day_map[ts_code][datetime.date.today()] = media_id
+        except:
+            pass
+    else:
+        media_id = stock_day_map[ts_code][datetime.date.today()]
+    if media_id:
         # 构造返回值，经由微信服务器回复给用户的消息内容
         resp_dict = {
             "xml": {
                 "ToUserName": xml_dict.get("FromUserName"),
                 "FromUserName": xml_dict.get("ToUserName"),
                 "CreateTime": int(time.time()),
-                "MsgType": "text",
-                "Content": re_content,
+                "MsgType": "image",
+                "Image": {
+                    "MediaId": media_id,
+                }
             }
         }
-
-        # 将字典转换为xml字符串
-        resp_xml_str = xmltodict.unparse(resp_dict)
-        # 返回消息数据给微信服务器
-        return resp_xml_str
+        return resp_dict
+    # 构造返回值，经由微信服务器回复给用户的消息内容
+    resp_dict = {
+        "xml": {
+            "ToUserName": xml_dict.get("FromUserName"),
+            "FromUserName": xml_dict.get("ToUserName"),
+            "CreateTime": int(time.time()),
+            "MsgType": "text",
+            "Content": "is stock code\nbut no midea_id",
+        }
+    }
+    return resp_dict
 
 
 if __name__ == "__main__":
