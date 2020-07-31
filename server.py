@@ -15,7 +15,7 @@ stats_stock = StatsStock()
 
 app = Flask(__name__)
 
-app.debug = True
+# app.debug = True
 
 access_token = ""
 
