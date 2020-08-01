@@ -69,5 +69,6 @@ matplotlib.use('Agg')
 
 如果各位觉得该项目帮到了您的话，还请不吝打赏，谢谢！
 
-![微信收款二维码](pic/money_weixin_20200719212002.png)
+![支付宝收款二维码](pic/alipay_20200801211208.png)
 
+![微信收款二维码](pic/money_weixin_20200719212002.png)
