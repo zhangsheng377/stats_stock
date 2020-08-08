@@ -7,6 +7,7 @@ import matplotlib
 matplotlib.use('Agg')
 from pandas.plotting import register_matplotlib_converters
 from statsmodels.tsa.seasonal import STL
+import statsmodels.api as sm
 import datetime
 import sys
 import time
@@ -26,6 +27,7 @@ class StatsStock:
         self.__start_time = datetime.date.today() + datetime.timedelta(-365*0.6)
         self.__x_label_gap = 30
         self.__pro = ts.pro_api(token=token)
+        self.__pred_len = 5
         return
 
     def query(self, ts_code):
@@ -48,8 +50,14 @@ class StatsStock:
             stl = STL(data)
             res = stl.fit()
 
+            # sarimax_fit = sm.tsa.statespace.SARIMAX(data, order=(2, 1, 4), seasonal_order=(0, 1, 1, 7)).fit()
+            sarimax_fit = sm.tsa.statespace.SARIMAX(data, seasonal_order=(0, 1, 1, 7)).fit()
+            pred_start_date = pd.Timestamp(self.__start_time.strftime("%d-%m-%Y")) + pd.Timedelta(days=len(data))
+            pred_end_date = pred_start_date + pd.Timedelta(days=self.__pred_len - 1)
+            pred_data = sarimax_fit.predict(start=pred_start_date, end=pred_end_date, dynamic=True)
+
             # plt.figure()
-            fig, (ax1, ax2, ax3) = plt.subplots(3, 1)
+            fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1)
 
             ax1.set_title('原始数据')
             ax1.plot(df_data['trade_date'], data)
@@ -74,6 +82,9 @@ class StatsStock:
             for label in ax3.get_xticklabels()[:-self.__x_label_gap:self.__x_label_gap]:
                 label.set_visible(True)
             ax3.get_xticklabels()[-1].set_visible(True)
+            
+            ax4.set_title('预测')
+            ax4.plot(pred_data.tolist())
 
             # plt.show()
             fig.suptitle(ts_code)
