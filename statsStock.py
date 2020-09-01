@@ -66,6 +66,7 @@ class StatsStock:
             for label in ax1.get_xticklabels()[:-self.__x_label_gap:self.__x_label_gap]:
                 label.set_visible(True)
             ax1.get_xticklabels()[-1].set_visible(True)
+            ax1.text(len(df_data['trade_date']), int(data[-1]), "%.1f" % data[-1])
 
             ax2.set_title('趋势')
             ax2.plot(df_data['trade_date'], res.trend)
@@ -84,7 +85,9 @@ class StatsStock:
             ax3.get_xticklabels()[-1].set_visible(True)
             
             ax4.set_title('预测')
-            ax4.plot(pred_data.tolist())
+            pred_data_list = pred_data.tolist()
+            ax4.plot(pred_data_list)
+            ax4.text(0, int(pred_data_list[0]), "%.1f" % (pred_data_list[0]))
 
             # plt.show()
             fig.suptitle(ts_code)

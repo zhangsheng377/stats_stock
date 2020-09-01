@@ -39,6 +39,7 @@ def get_access_token():
         "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={}&secret={}".format(AppID,
                                                                                                          AppSecret))
     data = r.json()
+    print(data)
     global access_token
     access_token = data['access_token']
     expires_in = data['expires_in']
